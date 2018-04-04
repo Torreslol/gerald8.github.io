@@ -7,7 +7,7 @@
 
   <title>
     
-      Tale
+      gerald
     
   </title>
 
@@ -26,7 +26,7 @@
     <nav class="nav">
       <div class="nav-container">
         <a href="/">
-          <h2 class="nav-title">Tale</h2>
+          <h2 class="nav-title">gerald</h2>
         </a>
         <ul>
           <li><a href="/about">About</a></li>
@@ -41,63 +41,24 @@
     <a href="/2018-03-14/Mac%E4%B8%8B%E9%85%8D%E7%BD%AEflutter%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83" class="catalogue-item">
       <div>
         <time datetime="2018-03-14 00:00:00 +0800" class="catalogue-time">March 14, 2018</time>
-        <h1 class="catalogue-title">Mac下配置flutter开发环境</h1>
+        <h1 class="catalogue-title">Mac下配置flutter开发环境 </h1>
         <div class="catalogue-line"></div>
 
         <p>
-          Get Started 安装环境: Mac OS 10.12.6 下载flutter $ git clone -b alpha https://github.com/flutter/flutter.git $ export PATH=`pwd`/flutter/bin:$PATH 按照第二步设置的环境变量只在terminal的当前session中有效，所以需要在~/.bash_profile文件中加入下行 $ export PATH=$HOME/flutter/bin:$PATH 然后执行 $ source ~/.bash_profile 重新打开terminal,输入 flutter OK 检查依赖 $ flutter...
+          Get Started 安装环境: Mac OS 10.12.6 下载flutter $ git clone -b alpha https://github.com/flutter/flutter.git 设置环境变量 $ export PATH=$HOME/flutter/bin:$PATH $ source ~/.bash_profile 重新打开terminal,输入 flutter OK 检查依赖 $ flutter doctor 如果你在大陆不出意外的话会在：Downloading Gradle Wrapper…的时候卡住，看log被墙了是。虽然我一直挂着SS，无奈terminal不走代理...
         </p>
 
       </div>
     </a>
   
-    <a href="/2017-03-16/example-content" class="catalogue-item">
+    <a href="/2017-04-04/%E4%B8%80%E7%AF%87%E5%8F%88%E8%87%AD%E5%8F%88%E9%95%BF%E7%9A%84HTTP%E7%AE%80%E4%BB%8B" class="catalogue-item">
       <div>
-        <time datetime="2017-03-16 00:00:00 +0800" class="catalogue-time">March 16, 2017</time>
-        <h1 class="catalogue-title">Example Content</h1>
+        <time datetime="2017-04-04 00:00:00 +0800" class="catalogue-time">April 04, 2017</time>
+        <h1 class="catalogue-title">一篇又臭又长的HTTP简介</h1>
         <div class="catalogue-line"></div>
 
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas tincidunt ornare nibh, non elementum augue tempus eget. Pellentesque tempus scelerisque iaculis. Nullam interdum ultricies nibh quis sollicitudin. Donec ornare fermentum...
-        </p>
-
-      </div>
-    </a>
-  
-    <a href="/2017-03-10/welcome-to-jekyll" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-10 00:00:00 +0800" class="catalogue-time">March 10, 2017</time>
-        <h1 class="catalogue-title">Welcome to Jekyll!</h1>
-        <div class="catalogue-line"></div>
-
-        <p>
-          You’ll find this post in your _posts directory. Go ahead and edit it and re-build the site to see your changes. You can rebuild the site in many different ways,...
-        </p>
-
-      </div>
-    </a>
-  
-    <a href="/2017-03-07/the-case-of-the-missing-post" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-07 00:00:00 +0800" class="catalogue-time">March 07, 2017</time>
-        <h1 class="catalogue-title">The Case of the Missing Post</h1>
-        <div class="catalogue-line"></div>
-
-        <p>
-          Kitty power! and sometimes switches in french and say “miaou” just because well why not man running from cops stops to pet cats, goes to jail, yet licks your face...
-        </p>
-
-      </div>
-    </a>
-  
-    <a href="/2017-03-06/the-mystery-of-the-filler-post" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-06 00:00:00 +0800" class="catalogue-time">March 06, 2017</time>
-        <h1 class="catalogue-title">The Mystery of the Filler Post</h1>
-        <div class="catalogue-line"></div>
-
-        <p>
-          Hornswaggle measured fer yer chains chase run a shot across the bow Chain Shot flogging Pirate Round galleon rope’s end aft. Prow fire in the hole keel rum Barbary Coast...
+          简介 HTTP协议（超文本传输协议）是互联网的基础协议，每天都有数以万计的图片、HTML页面、文本文件、音视频文件和其他资源通过HTTP协议在因特网上传递。 主要特点 1.支持客户/服务器模式。 2.简单快速：客户向服务器请求服务时，只需传送请求方法和路径。请求方法常用的有GET、HEAD、POST。每种方法规定了客户与服务器联系的类型不同。由于HTTP协议简单，使得HTTP服务器的程序规模小，因而通信速度很快。 3.灵活：HTTP允许传输任意类型的数据对象。正在传输的类型由Content-Type加以标记。 4.无连接：无连接的含义是限制每次连接只处理一个请求。服务器处理完客户的请求，并收到客户的应答后，即断开连接。采用这种方式可以节省传输时间。 5.无状态：HTTP协议是无状态协议。无状态是指协议对于事务处理没有记忆能力。缺少状态意味着如果后续处理需要前面的信息，则它必须重传，这样可能导致每次连接传送的数据量增大。另一方面，在服务器不需要先前信息时它的应答就较快。 关于无连接与无状态的理解都是相对的，HTTP1.0之后的持久连接，允许多个请求使用同一个TCP连接，session和cookie也使得HTTP通讯变的有状态。具体的会在下面说到。 资源 媒体类型 Web服务器会为所有的HTTP对象数据附加一个MIME类型，当浏览器从服务器取回一个对象时，会去查看相关的MIME类型，看看他是否知道如何处理这个对象。常见的MIME类型有几百种，对应到请求头的_Content-Type_字段: 比如： HTML格式的文本文档标记为 text/html。 普通的ASCII文本文档标记为 text/plain。 JPEG格式的图片标记为 image/jpeg。 GIF格式的图片标记为_ image/gif_。 完成的MIME类型列表 参见传送门。 URL和URI 每个Web服务器资源都有一个名字，这个名字被统称为统一资源标识符（Uniform Resource Identifier, URI）。 统一资源定位符（URL）是资源标识符最常见的形式。URL描述了一台特定服务器上某资源的特定位置。 事务...
         </p>
 
       </div>
@@ -108,8 +69,6 @@
 <div class="pagination">
   
   
-    <a href="/page2" class="right arrow">&#8594;</a>
-  
 
   <span>1</span>
 </div>
@@ -118,7 +77,7 @@
 
     <footer>
       <span>
-        &copy; <time datetime="2018-03-14 15:51:40 +0800">2018</time> Chester How. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2018-04-04 17:35:46 +0800">2018</time> Chester How. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>

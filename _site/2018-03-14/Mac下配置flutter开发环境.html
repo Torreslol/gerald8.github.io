@@ -7,7 +7,7 @@
 
   <title>
     
-      Mac下配置flutter开发环境 &middot; Tale
+      Mac下配置flutter开发环境  &middot; gerald
     
   </title>
 
@@ -26,7 +26,7 @@
     <nav class="nav">
       <div class="nav-container">
         <a href="/">
-          <h2 class="nav-title">Tale</h2>
+          <h2 class="nav-title">gerald</h2>
         </a>
         <ul>
           <li><a href="/about">About</a></li>
@@ -49,7 +49,7 @@
     
   </div>
 
-  <h1 class="post-title">Mac下配置flutter开发环境</h1>
+  <h1 class="post-title">Mac下配置flutter开发环境 </h1>
   <div class="post-line"></div>
 
   <h2 id="get-started">Get Started</h2>
@@ -57,13 +57,10 @@
 
 <h3 id="下载flutter">下载flutter</h3>
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>git clone <span class="nt">-b</span> alpha https://github.com/flutter/flutter.git
-<span class="nv">$ </span><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="sb">`</span><span class="nb">pwd</span><span class="sb">`</span>/flutter/bin:<span class="nv">$PATH</span>
 </code></pre></div></div>
-<p>按照第二步设置的环境变量只在<code class="highlighter-rouge">terminal</code>的当前session中有效，所以需要在<code class="highlighter-rouge">~/.bash_profile</code>文件中加入下行</p>
+<p>设置环境变量</p>
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">export </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$HOME</span>/flutter/bin:<span class="nv">$PATH</span>
-</code></pre></div></div>
-<p>然后执行</p>
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">source</span> ~/.bash_profile
+<span class="nv">$ </span><span class="nb">source</span> ~/.bash_profile
 </code></pre></div></div>
 <p>重新打开<code class="highlighter-rouge">terminal</code>,输入 <code class="highlighter-rouge">flutter</code>
 OK</p>
@@ -72,14 +69,14 @@ OK</p>
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>flutter doctor
 </code></pre></div></div>
 <p>如果你在大陆不出意外的话会在：<code class="highlighter-rouge">Downloading Gradle Wrapper…</code>的时候卡住，看log被墙了是。虽然我一直挂着SS，无奈<code class="highlighter-rouge">terminal</code>不走代理
-<a href="https://github.com/flutter/flutter/issues/11674">问题详情</a></p>
+<a href="https://github.com/flutter/flutter/issues/11674">问题详情在此</a></p>
 
 <p>解决方案</p>
-<ul>
+<ol>
   <li><a href="http://www.jianshu.com/p/32dfb5289cf5">为teminal开启proxy</a></li>
   <li><a href="http://blog.csdn.net/xjwangliang/article/details/78042740">浏览器手动下载</a> (亲测可用)</li>
   <li>另寻梯子</li>
-</ul>
+</ol>
 
 <p>再次运行<code class="highlighter-rouge">flutter doctor</code> 按照提示一步步安装所需依赖可能需要安装：</p>
 <ul>
@@ -90,8 +87,8 @@ OK</p>
 
 <p>不再一一赘述</p>
 
-<h3 id="编辑器">编辑器</h3>
-<p>flutter不限编辑器，官方推荐使用IntelliJ系列，因为习惯我选择用Atom，Atom安装flutter package:</p>
+<h3 id="ide">IDE</h3>
+<p><code class="highlighter-rouge">flutter</code>不限编辑器，官方推荐使用<code class="highlighter-rouge">IntelliJ</code>系列，因为习惯我选择用<code class="highlighter-rouge">Atom</code>，看了下<code class="highlighter-rouge">Atom</code>下也有支持<code class="highlighter-rouge">flutter</code>开发的插件 <code class="highlighter-rouge">flutter package</code>， 安装如下:</p>
 <ol>
   <li><code class="highlighter-rouge">shift+commnd+p</code> 输入 <code class="highlighter-rouge">install</code> 选择<code class="highlighter-rouge">install packages and themes</code></li>
   <li>搜索 <code class="highlighter-rouge">flutter</code> 并安装</li>
@@ -107,7 +104,7 @@ OK</p>
 <div class="pagination">
   
   
-    <a href="/2017-03-16/example-content" class="right arrow">&#8594;</a>
+    <a href="/2017-04-04/%E4%B8%80%E7%AF%87%E5%8F%88%E8%87%AD%E5%8F%88%E9%95%BF%E7%9A%84HTTP%E7%AE%80%E4%BB%8B" class="right arrow">&#8594;</a>
   
 
   <a href="#" class="top">Top</a>
@@ -117,7 +114,7 @@ OK</p>
 
     <footer>
       <span>
-        &copy; <time datetime="2018-03-14 15:51:40 +0800">2018</time> Chester How. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2018-04-04 17:35:46 +0800">2018</time> Chester How. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>

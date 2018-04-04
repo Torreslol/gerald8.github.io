@@ -1,5 +1,5 @@
 # Site settings
-title:          Tale
+title:          gerald
 description:    "Minimal Jekyll theme for storytellers"
 url:            "https://gerald8.github.io/"
 
@@ -24,5 +24,9 @@ plugins:
 # Permalinks
 permalink:      /:year-:month-:day/:title
 paginate:       5
+
+truncatewords: 50
+
+excerpt_separator: "<!--more-->"
 
 encoding: utf8
