@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Mac下配置flutter开发环境 "
+title: "Mac下配置flutter环境 "
 author: "wx"
 ---
 
