@@ -11,11 +11,14 @@ author: "wx"
 ```shell
 $ git clone -b alpha https://github.com/flutter/flutter.git
 ```
+<!--more-->
+
 设置环境变量
 ```shell
 $ export PATH=$HOME/flutter/bin:$PATH
 $ source ~/.bash_profile
 ```
+
 重新打开`terminal`,输入 `flutter`
 OK
 
