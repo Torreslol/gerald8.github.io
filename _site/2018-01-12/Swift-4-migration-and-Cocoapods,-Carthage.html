@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Cocoapods,Carthage构建的工程迁移到Swift 4 &middot; gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        wx
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2018-01-12 00:00:00 +0800">January 12, 2018</time>
+    
+  </div>
+
+  <h1 class="post-title">Cocoapods,Carthage构建的工程迁移到Swift 4</h1>
+  <div class="post-line"></div>
+
+  <h1 id="cocoapods">Cocoapods</h1>
+
+<h3 id="先决条件">先决条件</h3>
+<p>在之前XCode版本中编译通过的Swift 3工程</p>
+
+<h3 id="迁移方法">迁移方法</h3>
+
+<p>先不升级Pod,先把工程迁移到Swift 4，没有问题的话再把Pod迁移到Swift 4。步骤: <!--more--></p>
+
+<ol>
+  <li><strong>更新Podfile,设置Pod的swift version 为3.2</strong>
+    <div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">post_install</span> <span class="k">do</span> <span class="o">|</span><span class="n">installer</span><span class="o">|</span>
+ <span class="n">installer</span><span class="p">.</span><span class="nf">pods_project</span><span class="p">.</span><span class="nf">targets</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">target</span><span class="o">|</span>
+ <span class="n">target</span><span class="p">.</span><span class="nf">build_configurations</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+  <span class="n">config</span><span class="p">.</span><span class="nf">build_settings</span><span class="p">[</span><span class="s1">'SWIFT_VERSION'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'3.2'</span>
+ <span class="k">end</span>
+<span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><strong>转换工程到Swift 4</strong>
+设置Xcode当前swift版本为4.0。点击Xcode中的<code class="highlighter-rouge">Edit</code> -&gt; <code class="highlighter-rouge">Convert</code> -&gt; <code class="highlighter-rouge">Convert to current swift syntax</code>。然后解决掉所有issues。保证工程可以编译成功。</p>
+  </li>
+  <li><strong>升级Podfile</strong>
+检查用到的Pods，去他们主页查看是否已经支持Swift 4,对已经支持Swift 4和尚未支持的要在Podfile中区分</li>
+</ol>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">swift_32</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'RxSwift'</span><span class="p">,</span> <span class="s1">'RxCocoa'</span><span class="p">]</span>
+<span class="n">swift4</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'PalaverKit'</span><span class="p">]</span>
+
+<span class="n">post_install</span> <span class="k">do</span> <span class="o">|</span><span class="n">installer</span><span class="o">|</span>
+  <span class="n">installer</span><span class="p">.</span><span class="nf">pods_project</span><span class="p">.</span><span class="nf">targets</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">target</span><span class="o">|</span>
+    <span class="n">swift_version</span> <span class="o">=</span> <span class="kp">nil</span>
+
+    <span class="k">if</span> <span class="n">swift_32</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">target</span><span class="p">.</span><span class="nf">name</span><span class="p">)</span>
+      <span class="n">swift_version</span> <span class="o">=</span> <span class="s1">'3.2'</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="n">swift4</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="n">target</span><span class="p">.</span><span class="nf">name</span><span class="p">)</span>
+      <span class="n">swift_version</span> <span class="o">=</span> <span class="s1">'4.0'</span>
+    <span class="k">end</span>
+
+    <span class="k">if</span> <span class="n">swift_version</span>
+      <span class="n">target</span><span class="p">.</span><span class="nf">build_configurations</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">config</span><span class="o">|</span>
+        <span class="n">config</span><span class="p">.</span><span class="nf">build_settings</span><span class="p">[</span><span class="s1">'SWIFT_VERSION'</span><span class="p">]</span> <span class="o">=</span> <span class="n">swift_version</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+</code></pre></div></div>
+
+<p><strong>参见:</strong>
+<a href="https://swift.org/blog/swift-4-0-released/">Swift New compatibility modes</a>
+<a href="https://swift.org/migration-guide-swift4/">migration-guide-swift4-Using Carthage/CocoaPods Projects</a>
+<a href="https://github.com/CocoaPods/CocoaPods/issues/6791">Support multiple Swift versions on a per pod basis</a></p>
+
+<h1 id="carthage">Carthage</h1>
+
+<h3 id="先决条件-1">先决条件</h3>
+<p>在之前XCode版本中编译通过的Swift 3工程</p>
+
+<h3 id="迁移方法-1">迁移方法</h3>
+<p>先不升级Carthage工程,先把工程迁移到Swift 4，没有问题的话再把Pod迁移到Swift。</p>
+
+<ul>
+  <li><strong>转换工程到Swift 4</strong></li>
+</ul>
+
+<p>设置Xcode当前swift版本为4.0。点击Xcode中的<code class="highlighter-rouge">Edit</code> -&gt; <code class="highlighter-rouge">Convert</code> -&gt; <code class="highlighter-rouge">Convert to current swift syntax</code>。然后解决掉所有issues。保证工程可以编译成功。</p>
+
+<ul>
+  <li><strong>升级Cartfile</strong></li>
+</ul>
+
+<p>检查用到的Framework，去他们主页查看是否已经支持Swift 4,在Cartfile中指定对应的具体版本</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">github</span> <span class="s2">"ninjaprox/NVActivityIndicatorView"</span> <span class="o">==</span> <span class="mf">3.6</span><span class="o">.</span><span class="mi">0</span> <span class="o">/</span><span class="sr">/Using Swift 3
+github "Alamofire/</span><span class="no">Alamofire</span><span class="s2">" ~&gt; 4.5 //Using Swift 4
+</span></code></pre></div></div>
+
+<p>Over ~</p>
+
+
+</div>
+
+<div class="pagination">
+  
+    <a href="/2018-03-14/Mac%E4%B8%8B%E9%85%8D%E7%BD%AEFlutter%E7%8E%AF%E5%A2%83" class="left arrow">&#8592;</a>
+  
+  
+    <a href="/2017-04-04/%E4%B8%80%E7%AF%87%E5%8F%88%E8%87%AD%E5%8F%88%E9%95%BF%E7%9A%84HTTP%E7%AE%80%E4%BB%8B" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2018-04-13 19:14:59 +0800">2018</time> Chester How. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>

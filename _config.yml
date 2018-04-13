@@ -12,6 +12,12 @@ author:
 # Build settings
 markdown:       kramdown
 
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+highlighter: rouge
+
 # Assets
 sass:
   sass_dir:     _sass
@@ -27,4 +33,4 @@ paginate:       5
 
 excerpt_separator: <!--more-->
 
-encoding: utf8
+encoding: UTF-8
