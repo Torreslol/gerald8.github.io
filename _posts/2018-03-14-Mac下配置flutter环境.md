@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Mac下配置flutter环境 "
-author: "wx"
+author: "Gerald"
 ---
 
 ## Get Started
@@ -23,9 +23,9 @@ $ source ~/.bash_profile
 OK
 
 ### 检查依赖
-```shell
+~~~shell
 $ flutter doctor
-```
+~~~
 如果你在大陆不出意外的话会在：`Downloading Gradle Wrapper…`的时候卡住，看log被墙了是。虽然我一直挂着SS，无奈`terminal`不走代理
 [问题详情在此](https://github.com/flutter/flutter/issues/11674)
 
