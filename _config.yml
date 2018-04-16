@@ -1,13 +1,13 @@
 # Site settings
-title:          Gerald
+title:          gerald
 description:    "Minimal Jekyll theme for storytellers"
 url:            "https://gerald8.github.io/"
 
 # Author
 author:
-  name:         Gerald
-  url:          https://twitter.com/Melo_Wang
-  email:        melowwx@gmail.com
+  name:         Chester How
+  url:          https://chester.how
+  email:        chesterhow@gmail.com
 
 # Build settings
 markdown:       kramdown

@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Cocoapods,Carthage构建的工程迁移到Swift 4"
-author: "Gerald"
+author: "wx"
 ---
 
 # Cocoapods
