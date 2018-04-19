@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Swift 减少动态调度提升性能 &middot; Gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        Gerald
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2017-09-04 00:00:00 +0800">September 04, 2017</time>
+    
+  </div>
+
+  <h1 class="post-title">Swift 减少动态调度提升性能</h1>
+  <div class="post-line"></div>
+
+  <blockquote>
+  <p>Swift code is safe by design, yet also produces software that runs lightning-fast.</p>
+</blockquote>
+
+<p>上面是 Swift 官方的介绍，介绍了这是一门类型安全而且快如闪电的语言。</p>
+
+<p>关于 <strong>类型安全</strong>，体现在 Swift 会在编译你的代码时进行 <strong>类型检查</strong>（type checks），并把不匹配的类型标记为错误。这可以让你在开发的时候尽早发现并修复错误。
+<!--more-->
+而 Swift 是如何做到 lighting-fast 的，是本文关注点。是的，那就是<strong>动态调度</strong> (Dynamic Dispatch)。动态调度（Dynamic dispatch）是指运行时选择哪一个多态操作的实现（方法或函数）来调用的过程。</p>
+
+<p>与动态调度成对比的是静态调度(Static dispatch)，在静态调度中，对一个多态操作的实现是在编译时间就选择好的。</p>
+
+<p>动态调度的目的在于支持那些当在编译时间内无法决定一个多态操作的合适的实现因为这个决定取决于这个操作的一个或多个实际参数的运行类型的情形。</p>
+
+<p>最让我们熟知的场景怕是 Objective-C 的 objc_msgSend 了，关于 Objective-C 的运行时和消息传递可以参照其他文章，这里不多费口舌，总的来说 objc_msgSend 要在运行时 去 class instance 保存的 hash table 里面去找对应的方法实现。这是一个漫长而又复杂的过程（有无缓存，元类，父类，转发）。</p>
+
+<p>Swift 中很相似，我们一样是去 class instance 中 去找对应的实现。不同的是 Swift class 的 metedata 里维护了一个 叫做 vtable 的数组。类似于 Objective-C 的那个 hash table。因为 Swift 是类型安全的语言， 所以在编译的时候我们就可以得知当前的类是谁的子类，我们的 vtable 需要有哪些方法，这些方法的实现的 vtable里的 index 是多少。</p>
+
+<p>相比 Objective-C 的运行时，Swift 只需要在运行时找到对应的 vtable。</p>
+
+<p>据说在 Objective-C 中静态调度4倍效率于运行时的动态调度 -&gt; <a href="https://stackoverflow.com/questions/37806982/difference-between-static-function-and-singleton-class-in-swift">here</a>。</p>
+
+<p>那么，在一个性能敏感的代码中，可以避免 Dynamic dispatch 吗？ 显然是不可能的，因为继承(Inheritance) 和重写(Override) 的存在，但是我们可以尽量避免不必要的动态调度。</p>
+
+<p>用 <code class="highlighter-rouge">final</code> 和 <code class="highlighter-rouge">private</code> 修饰不需要重写的方法。</p>
+
+<p>用 <code class="highlighter-rouge">static</code> 而不是 <code class="highlighter-rouge">class</code> 来修饰静态方法。</p>
+
+<p>甚至可以用 <code class="highlighter-rouge">final</code> 来修饰整个class。</p>
+
+<p>其实 <code class="highlighter-rouge">Swift</code> 推荐使用 <code class="highlighter-rouge">Struct</code> 而不是 <code class="highlighter-rouge">Class</code>,我想这也是一部分原因吧。如果 <code class="highlighter-rouge">Struct</code> 可以满足需求的话尽量使用 <code class="highlighter-rouge">Struct</code>,但是要注意它们的区别避免不必要的麻烦（主要是<strong>引用类型</strong>和<strong>值类型</strong>）。</p>
+
+<p>另外，我在其他地方看到在 Xcode 的 Build Setting 中，可以通过 Whole Module Optimization 来 优化动态调度，编译器会将没有可见重写的 <code class="highlighter-rouge">internal</code>方法推断为 <code class="highlighter-rouge">final</code>类型。</p>
+
+<p><img src="/assets/Optimization.png" alt="" /></p>
+
+<p>在实际项目中可能会带来其他的问题，我们其他项目组就遇到过Release分之下开启优化导致Crash的情况。</p>
+
+<p>本文参考</p>
+
+<ul>
+  <li>
+    <p><a href="https://developer.apple.com/swift/blog/?id=27">Increasing Performance by Reducing Dynamic Dispatch</a></p>
+  </li>
+  <li>
+    <p><a href="https://www.youtube.com/watch?time_continue=335&amp;v=MWBc5F8Upwc">https://www.youtube.com/watch?time_continue=335&amp;v=MWBc5F8Upwc</a></p>
+  </li>
+</ul>
+
+
+</div>
+
+<div class="pagination">
+  
+    <a href="/2018-01-12/Swift-4-migration-and-Cocoapods,-Carthage" class="left arrow">&#8592;</a>
+  
+  
+    <a href="/2017-04-04/%E4%B8%80%E7%AF%87%E5%8F%88%E8%87%AD%E5%8F%88%E9%95%BF%E7%9A%84HTTP%E7%AE%80%E4%BB%8B" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2018-04-19 18:34:30 +0800">2018</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>
