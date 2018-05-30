@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      UDP协议简单介绍 &middot; Gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        Gerald
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2017-03-02 00:00:00 +0800">March 02, 2017</time>
+    
+  </div>
+
+  <h1 class="post-title">UDP协议简单介绍</h1>
+  <div class="post-line"></div>
+
+  <p>UDP是一个简单的面向数据报的传输层协议。</p>
+
+<p>UDP 在传送数据之前不需要先建立连接。接收方收到 UDP 报文之后，不需要给出任何确认。
+虽然 UDP 不提供可靠交付，但在某些情况下 UDP 却是一种最有效的工作方式。</p>
+
+<!--more-->
+
+<p><strong>UDP 的主要特点是：</strong></p>
+
+<ol>
+  <li><strong>无连接的</strong>
+，即发送数据之前不需要建立连接，因此减少了开销和发送数据之前的时延。</li>
+  <li><strong>不保证可靠交付</strong>
+，因此主机不需要为此复杂的连接状态表</li>
+  <li><strong>面向报文的</strong>
+，意思是 UDP 对应用层交下来的报文，既不合并，也不拆分，而是保留这些报文的边界，在添加首部后向下交给 IP 层。</li>
+  <li><strong>没有阻塞控制</strong>
+，因此网络出现的拥塞不会使发送方的发送速率降低。</li>
+  <li><strong>支持一对一、一对多、多对一和多对多的交互通信</strong>
+，也即是提供广播和多播的功能。</li>
+  <li><strong>首部开销小</strong>
+，首部只有 8 个字节，分为四部分。</li>
+</ol>
+
+<p><strong>UDP 的常用场景：</strong></p>
+
+<ol>
+  <li>名字转换（DNS）</li>
+  <li>文件传送（TFTP）</li>
+  <li>路由选择协议（RIP）</li>
+  <li>IP 地址配置（BOOTP，DHTP）</li>
+  <li>网络管理（SNMP）</li>
+  <li>远程文件服务（NFS）</li>
+  <li>IP 电话</li>
+  <li>流式多媒体通信</li>
+</ol>
+
+<p>与TCP的对比：</p>
+
+<p><strong>UDP：单个数据报，不用建立连接，简单，不可靠，会丢包，会乱序；</strong></p>
+
+<p><strong>TCP：流式，需要建立连接，复杂，可靠 ，有序。</strong></p>
+
+
+</div>
+
+<div class="pagination">
+  
+    <a href="/2017-03-12/%E4%B8%80%E6%96%87%E4%BA%86%E8%A7%A3Websocket" class="left arrow">&#8592;</a>
+  
+  
+    <a href="/2017-03-01/TCP%E5%8D%8F%E8%AE%AE%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D0" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2018-05-30 17:46:50 +0800">2018</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>
