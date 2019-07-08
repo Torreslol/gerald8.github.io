@@ -38,6 +38,19 @@
     <main>
       <div class="catalogue">
   
+    <a href="/2019-07-06/%E8%AE%B0%E4%B8%80%E4%B8%AA-HTTP-%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98" class="catalogue-item">
+      <div>
+        <time datetime="2019-07-06 00:00:00 +0800" class="catalogue-time">July 06, 2019</time>
+        <h1 class="catalogue-title">记一个 HTTP 超时问题</h1>
+        <div class="catalogue-line"></div>
+        <p>
+          最近有同事反应我们的 app 在分类页网络正常时偶尔会出现请求超时。第一反应是分类服务挂掉了，服务层的同事逐层排查下来发现 api 层并没有产生异常日志，应该不是服务本身或者依赖的中台服务挂掉了。
+
+
+        </p>
+      </div>
+    </a>
+  
     <a href="/2018-06-27/iOS-%E4%BD%BF%E7%94%A8-fastlane-%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%8A%A8%E5%8C%96%E5%8F%91%E5%B8%83" class="catalogue-item">
       <div>
         <time datetime="2018-06-27 00:00:00 +0800" class="catalogue-time">June 27, 2018</time>
@@ -111,77 +124,6 @@ $ git clone -b alpha https://github.com/flutter/flutter.git
       </div>
     </a>
   
-    <a href="/2017-04-04/%E4%B8%80%E7%AF%87%E5%8F%88%E8%87%AD%E5%8F%88%E9%95%BF%E7%9A%84HTTP%E7%AE%80%E4%BB%8B" class="catalogue-item">
-      <div>
-        <time datetime="2017-04-04 00:00:00 +0800" class="catalogue-time">April 04, 2017</time>
-        <h1 class="catalogue-title">一篇又臭又长的HTTP简介</h1>
-        <div class="catalogue-line"></div>
-        <p>
-          简介
-
-HTTP协议（超文本传输协议）是互联网的基础协议，每天都有数以万计的图片、HTML页面、文本文件、音视频文件和其他资源通过HTTP协议在因特网上传递。
-
-主要特点
-
-1.支持客户/服务器模式。
-
-2.简单快速：客户向服务器请求服务时，只需传送请求方法和路径。请求方法常用的有GET、HEAD、POST。每种方法规定了客户与服务器联系的类型不同。由于HTTP协议简单，使得HTTP服务器的程序规模小，因而通信速度很快。
-
-
-        </p>
-      </div>
-    </a>
-  
-    <a href="/2017-03-12/%E4%B8%80%E6%96%87%E4%BA%86%E8%A7%A3Websocket" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-12 00:00:00 +0800" class="catalogue-time">March 12, 2017</time>
-        <h1 class="catalogue-title">一文了解Websocket</h1>
-        <div class="catalogue-line"></div>
-        <p>
-          简介
-
-WebSocket 协议在2008年诞生，2011年成为国际标准。所有浏览器都已经支持了。WebSocket使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在WebSocket API中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输。
-
-
-        </p>
-      </div>
-    </a>
-  
-    <a href="/2017-03-02/UDP%E5%8D%8F%E8%AE%AE%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-02 00:00:00 +0800" class="catalogue-time">March 02, 2017</time>
-        <h1 class="catalogue-title">UDP协议简单介绍</h1>
-        <div class="catalogue-line"></div>
-        <p>
-          UDP是一个简单的面向数据报的传输层协议。
-
-UDP 在传送数据之前不需要先建立连接。接收方收到 UDP 报文之后，不需要给出任何确认。
-虽然 UDP 不提供可靠交付，但在某些情况下 UDP 却是一种最有效的工作方式。
-
-
-        </p>
-      </div>
-    </a>
-  
-    <a href="/2017-03-01/TCP%E5%8D%8F%E8%AE%AE%E7%AE%80%E5%8D%95%E4%BB%8B%E7%BB%8D0" class="catalogue-item">
-      <div>
-        <time datetime="2017-03-01 00:00:00 +0800" class="catalogue-time">March 01, 2017</time>
-        <h1 class="catalogue-title">TCP协议简单介绍</h1>
-        <div class="catalogue-line"></div>
-        <p>
-          TCP首部
-
-TCP协议位于传输层，是一种面向连接的、可靠的、基于字节流的通信协议。TCP首部的很多字段都是为了实现这2大特性而设计的。 在一个TCP连接中，仅有两方能进行彼此通信。如果不计任选字段，TCP的首部通常是20字段。
-
-
-
-TCP 的首部包括以下内容：
-
-
-        </p>
-      </div>
-    </a>
-  
     <a href="/2017-02-20/%E7%94%A8-%E6%99%AE%E9%80%9A%E8%AF%9D-%E6%8F%8F%E8%BF%B0%E8%AE%BE%E8%AE%A1%E5%85%AD%E5%8E%9F%E5%88%99" class="catalogue-item">
       <div>
         <time datetime="2017-02-20 00:00:00 +0800" class="catalogue-time">February 20, 2017</time>
@@ -210,7 +152,7 @@ TCP 的首部包括以下内容：
 
     <footer>
       <span>
-        &copy; <time datetime="2018-06-28 16:10:26 +0800">2018</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2019-07-08 18:39:49 +0800">2019</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>
