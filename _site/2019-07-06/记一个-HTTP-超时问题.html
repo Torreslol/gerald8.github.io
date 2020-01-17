@@ -90,8 +90,8 @@
 
 <p>直接看代码吧，我们现在项目里有两套网络请求的框架，一套是<code class="highlighter-rouge">Objective-C</code>的基于<code class="highlighter-rouge">AFNetworking</code>的老代码，一套是为了向<code class="highlighter-rouge">Swift</code>迁移新实现，一番折腾，在以前的基础库里找到了这段看似平平无奇的代码：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithBaseURL:[NSURL URLWithString:@""]];
-[manager POST:api parameters:params progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {...}
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">AFHTTPSessionManager</span> <span class="o">*</span><span class="n">manager</span> <span class="o">=</span> <span class="p">[[</span><span class="kt">AFHTTPSessionManager</span> <span class="n">alloc</span><span class="p">]</span> <span class="nv">initWithBaseURL</span><span class="p">:[</span><span class="kt">NSURL</span> <span class="kt">URLWithString</span><span class="p">:</span><span class="s">@""</span><span class="p">]];</span>
+<span class="p">[</span><span class="n">manager</span> <span class="kt">POST</span><span class="p">:</span><span class="n">api</span> <span class="nv">parameters</span><span class="p">:</span><span class="n">params</span> <span class="nv">progress</span><span class="p">:</span><span class="kc">nil</span> <span class="nv">success</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="kt">NSURLSessionDataTask</span> <span class="o">*</span> <span class="n">_Nonnull</span> <span class="n">task</span><span class="p">,</span> <span class="n">id</span>  <span class="n">_Nullable</span> <span class="n">responseObject</span><span class="p">)</span> <span class="p">{</span><span class="o">...</span><span class="p">}</span>
 </code></pre></div></div>
 
 <p>这段代码的实现里 <code class="highlighter-rouge">AFHTTPSessionManager</code>  每次都是新创建出来的，虽然系统默认开启了 Keep-Alive ，但是 TCP  通道并不会复用，相当于一个披着 HTTP 1.1 外衣的 1.0连接，这就回答了第一个疑问。</p>
@@ -141,6 +141,8 @@
 
 <div class="pagination">
   
+    <a href="/2020-01-16/iOS-%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88" class="left arrow">&#8592;</a>
+  
   
     <a href="/2018-06-27/iOS-%E4%BD%BF%E7%94%A8-fastlane-%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%8A%A8%E5%8C%96%E5%8F%91%E5%B8%83" class="right arrow">&#8594;</a>
   
@@ -152,7 +154,7 @@
 
     <footer>
       <span>
-        &copy; <time datetime="2020-01-17 16:45:17 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2020-01-17 17:31:39 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>

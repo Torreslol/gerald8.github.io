@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      iOS 非侵入式埋点方案 &middot; Gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        Gerald
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2020-01-16 00:00:00 +0800">January 16, 2020</time>
+    
+  </div>
+
+  <h1 class="post-title">iOS 非侵入式埋点方案</h1>
+  <div class="post-line"></div>
+
+  <p>随着业务部门运营的精细化程度越来越高，客户端收到关于用户行为的埋点需求日渐增多，要求也趋于严格，每个版本迭代中开发和产品都要花费大量时间在埋点需求上，当前的代码埋点方式已经成为了我们的痛点，在这个前提下迫切需要一个新的方案来摆脱困境。</p>
+
+<h3 id="概念">概念</h3>
+
+<p>在介绍解决方案之前需要先了解以下几个问题：</p>
+
+<p>1.埋点的场景？</p>
+
+<p>2.埋点的方式？</p>
+
+<p>3.几种埋点方式的区别及优缺点？</p>
+
+<!--more-->
+
+<p>按埋点位置可以分为服务端和客户端埋点：</p>
+
+<p>客户端埋点用于记录用户的操作行为，服务端埋点用于记录与业务相关的数据。这里只讨论客户端埋点。</p>
+
+<p><strong>客户端埋点场景</strong>：</p>
+
+<ol>
+  <li>
+    <p>用户的页面访问流 - 记录用户在使用期间浏览的页面。</p>
+  </li>
+  <li>
+    <p>用户的点击行为 - 记录用户在使用期间点击了哪些位置，触发了哪些操作。</p>
+  </li>
+  <li>
+    <p>用户访问期间的曝光 - 记录用户在页面上浏览了哪些指定的 商品、广告等。</p>
+  </li>
+</ol>
+
+<p><strong>客户端埋点方式</strong>：</p>
+
+<ol>
+  <li>
+    <p><strong>代码埋点</strong></p>
+
+    <p>研发按照产品/运营的需求或埋点文档，在App的源码里添加行为上报的代码。这种方案是最基础的方案，每次增加或者修改数据上报的条件，都需要开发人员的参与，并且只能在下一个版本上线后才能看到效果。</p>
+
+    <p>优点：按需埋点，简单方便，灵活精确</p>
+
+    <p>缺点：每次增加或者修改数据上报的条件，都需要开发人员的参与，并且只能在下一个版本上线后才能看到效果。</p>
+  </li>
+  <li>
+    <p><strong>全埋点</strong></p>
+
+    <p>全埋点，也称无埋点，即在App中对所有的按钮点击都进行上报，然后由数据部门去后台筛选所需要的行为数据，数据清洗完交付给业务部门使用。</p>
+
+    <p>目前很多第三方SDK如：神策，GrowingIO，都是通过静态或者动态的方式， hook 原有代码 ，来实现了行为的监测。</p>
+
+    <p>优点：解决了代码埋点的侵入性、⼯作量和发版成本问题。</p>
+
+    <p>缺点：上报数据量大，筛选难度大，覆盖功能有限。</p>
+  </li>
+  <li>
+    <p><strong>可视化埋点</strong></p>
+
+    <p>可视化埋点，即用可视化的⽅式，提前把需要采集的控件事件进行圈选，并下发给客户端，⽤户进行操作时，埋点SDK会自动根据下发的配置进行上报，不需要进行代码埋点。</p>
+
+    <p>目前也有一些 SDK 如 GrowingIO，Mixpanel 提供了这样的功能。</p>
+
+    <p>优点：按需埋点，动态可配置。</p>
+
+    <p>缺点：配置平台开发和维护成本高。</p>
+  </li>
+</ol>
+
+<h3 id="现状">现状</h3>
+
+<p>目前项目里的埋点工作大部分还是由客户端来承担，接入了 第三方的 神策 SDK 。</p>
+
+<p><strong>点击事件</strong></p>
+
+<p>神策的全埋点方案中点击行为通过 hook 系统的方法来实现，熟悉事件分发的同学都知道 
+通过 hook  <code class="highlighter-rouge">Application</code> 的 <code class="highlighter-rouge">sendAction:to:from:forEvent:</code> 就可以对点击事件进行拦截，另外一些特殊的 UI 控件（点击事件事件代理分发的）如 <code class="highlighter-rouge">UITableView</code>, <code class="highlighter-rouge">UIClollectionView</code>, <code class="highlighter-rouge">UIAlertView</code> 等需要在 load 方法里 swizzle setDelegate 方法，在 setDelegate 后进行代理回调方法的 swizzle 操作，以 <code class="highlighter-rouge">UITableView</code>为例， 关键代码如下</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 代码来自 https://github.com/sensorsdata/sa-sdk-ios</span>
+<span class="n">void</span> <span class="nf">sa_tableViewDidSelectRowAtIndexPath</span><span class="p">(</span><span class="n">id</span> <span class="k">self</span><span class="p">,</span> <span class="kt">SEL</span> <span class="n">_cmd</span><span class="p">,</span> <span class="n">id</span> <span class="n">tableView</span><span class="p">,</span> <span class="kt">NSIndexPath</span><span class="o">*</span> <span class="n">indexPath</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">SEL</span> <span class="n">selector</span> <span class="o">=</span> <span class="kt">NSSelectorFromString</span><span class="p">(</span><span class="s">@"sa_tableViewDidSelectRowAtIndexPath"</span><span class="p">);</span>
+    <span class="p">((</span><span class="nf">void</span><span class="p">(</span><span class="o">*</span><span class="p">)(</span><span class="n">id</span><span class="p">,</span> <span class="kt">SEL</span><span class="p">,</span> <span class="n">id</span><span class="p">,</span> <span class="n">id</span><span class="p">))</span><span class="n">objc_msgSend</span><span class="p">)(</span><span class="k">self</span><span class="p">,</span> <span class="n">selector</span><span class="p">,</span> <span class="n">tableView</span><span class="p">,</span> <span class="n">indexPath</span><span class="p">);</span>
+    
+    <span class="c1">//插入埋点</span>
+    <span class="p">[</span><span class="kt">AutoTrackUtils</span> <span class="nv">trackAppClickWithUITableView</span><span class="p">:</span><span class="n">tableView</span> <span class="nv">didSelectRowAtIndexPath</span><span class="p">:</span><span class="n">indexPath</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">sa_tableViewSetDelegate</span><span class="p">:(</span><span class="n">id</span><span class="o">&lt;</span><span class="kt">UITableViewDelegate</span><span class="o">&gt;</span><span class="p">)</span><span class="n">delegate</span> <span class="p">{</span>
+    <span class="p">[</span><span class="k">self</span> <span class="nv">sa_tableViewSetDelegate</span><span class="p">:</span><span class="n">delegate</span><span class="p">];</span>
+    
+    <span class="kd">@try</span> <span class="p">{</span>
+        <span class="kt">Class</span> <span class="kd">class</span> <span class="o">=</span> <span class="p">[</span><span class="n">delegate</span> <span class="kd">class</span><span class="p">];</span>
+        <span class="c1">//        static dispatch_once_t onceToken;</span>
+        <span class="c1">//        dispatch_once(&amp;onceToken, ^{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nf">class_addMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kt">NSSelectorFromString</span><span class="p">(</span><span class="s">@"sa_tableViewDidSelectRowAtIndexPath"</span><span class="p">),</span> <span class="p">(</span><span class="kt">IMP</span><span class="p">)</span><span class="n">sa_tableViewDidSelectRowAtIndexPath</span><span class="p">,</span> <span class="s">"v@:@@"</span><span class="p">))</span> <span class="p">{</span>
+            <span class="kt">Method</span> <span class="n">dis_originMethod</span> <span class="o">=</span> <span class="nf">class_getInstanceMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kt">NSSelectorFromString</span><span class="p">(</span><span class="s">@"sa_tableViewDidSelectRowAtIndexPath"</span><span class="p">));</span>
+            <span class="kt">Method</span> <span class="n">dis_swizzledMethod</span> <span class="o">=</span> <span class="nf">class_getInstanceMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kd">@selector(tableView:didSelectRowAtIndexPath:)</span><span class="p">);</span>
+            <span class="nf">method_exchangeImplementations</span><span class="p">(</span><span class="n">dis_originMethod</span><span class="p">,</span> <span class="n">dis_swizzledMethod</span><span class="p">);</span>
+        <span class="p">}</span>
+        <span class="c1">//        });</span>
+    <span class="p">}</span> <span class="kd">@catch</span> <span class="p">(</span><span class="kt">NSException</span> <span class="o">*</span><span class="n">exception</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">SAError</span><span class="p">(</span><span class="s">@"%@ error: %@"</span><span class="p">,</span> <span class="k">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>点击的事件路径是取的页面 id，可以在后排数据库建立映射表，也可以代码里显示指定。</p>
+
+<p>另外还有更多的用户的点击行为埋点嵌在点击事件里,例如：</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">func</span> <span class="nf">chooseCoupon</span><span class="p">()</span> <span class="p">{</span>
+		<span class="kt">MaiDianSingleton</span><span class="o">.</span><span class="nf">shareInstance</span><span class="p">()?</span><span class="o">.</span><span class="nf">track</span><span class="p">(</span><span class="s">"chooseCoupon"</span><span class="p">,</span> <span class="nv">properties</span><span class="p">:</span> <span class="n">params</span><span class="p">)</span> 
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>像这类代码埋点目前比重比较大，发版都要重复验收，也是出错比较多的部分。</p>
+
+<p><strong>页面访问流</strong></p>
+
+<p>页面访问流的话 hook了  <code class="highlighter-rouge">UIViewController</code> 的 <code class="highlighter-rouge">viewWillAppear</code> 方法, 关键代码如下</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 代码来自 https://github.com/sensorsdata/sa-sdk-ios</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">sa_autotrack_viewWillAppear</span><span class="p">:(</span><span class="kt">BOOL</span><span class="p">)</span><span class="n">animated</span> <span class="p">{</span>
+    <span class="kd">@try</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">([[</span><span class="kt">SensorsAnalyticsSDK</span> <span class="n">sharedInstance</span><span class="p">]</span> <span class="nv">isAutoTrackEventTypeIgnored</span><span class="p">:</span><span class="kt">SensorsAnalyticsEventTypeAppViewScreen</span><span class="p">]</span> <span class="o">==</span> <span class="kt">NO</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">UIViewController</span> <span class="o">*</span><span class="n">viewController</span> <span class="o">=</span> <span class="p">(</span><span class="kt">UIViewController</span> <span class="o">*</span><span class="p">)</span><span class="k">self</span><span class="p">;</span>
+            <span class="p">[[</span><span class="kt">SensorsAnalyticsSDK</span> <span class="n">sharedInstance</span><span class="p">]</span> <span class="nv">trackViewScreen</span><span class="p">:</span> <span class="n">viewController</span><span class="p">];</span>
+        <span class="p">}</span>
+    <span class="p">}</span> <span class="kd">@catch</span> <span class="p">(</span><span class="kt">NSException</span> <span class="o">*</span><span class="n">exception</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kt">SAError</span><span class="p">(</span><span class="s">@"%@ error: %@"</span><span class="p">,</span> <span class="k">self</span><span class="p">,</span> <span class="n">exception</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="p">[</span><span class="k">self</span> <span class="nv">sa_autotrack_viewWillAppear</span><span class="p">:</span><span class="n">animated</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>如果需要访问时长，可以一并 hook <code class="highlighter-rouge">viewDidDisappear</code> 统计时差，这都很简单。</p>
+
+<p><strong>曝光</strong></p>
+
+<p>曝光埋点比较麻烦，我司的曝光要求是元素在屏幕内逗留两秒以上，算一次曝光，目前的做法是</p>
+
+<ul>
+  <li>如果是 <code class="highlighter-rouge">UITableView</code> 和 <code class="highlighter-rouge">UICollectionView</code> 上的元素可以通过 <code class="highlighter-rouge">willDisplayCell</code> 和<code class="highlighter-rouge">didEndDisplayingCell</code>  记录要曝光的数据，等页面退出的时候进行曝光 ,简化后的逻辑如下</li>
+</ul>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">tableView</span><span class="p">:(</span><span class="kt">UITableView</span> <span class="o">*</span><span class="p">)</span><span class="n">tableView</span> <span class="nv">didEndDisplayingCell</span><span class="p">:(</span><span class="kt">UITableViewCell</span> <span class="o">*</span><span class="p">)</span><span class="n">cell</span> <span class="nv">forRowAtIndexPath</span><span class="p">:(</span><span class="kt">NSIndexPath</span> <span class="o">*</span><span class="p">)</span><span class="n">indexPath</span> <span class="p">{</span>
+    <span class="kt">NSDictionary</span> <span class="o">*</span><span class="n">item</span> <span class="o">=</span> <span class="n">dataList</span><span class="p">[</span><span class="n">indexPath</span><span class="o">.</span><span class="n">row</span><span class="p">];</span>
+    <span class="n">item</span><span class="o">.</span><span class="n">endDisplayingTime</span> <span class="o">=</span> <span class="p">[</span><span class="kt">MSUtils</span> <span class="n">getCurrentTimestamp</span><span class="p">];</span>
+  	<span class="k">if</span> <span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">endDisplayingTime</span> <span class="o">-</span> <span class="n">item</span><span class="o">.</span><span class="n">displayTime</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+      	<span class="nf">dispatch_async</span><span class="p">([</span><span class="kt">MaiDianSingleton</span> <span class="n">shareInstance</span><span class="p">]</span><span class="o">.</span><span class="n">trackQueue</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+           		 <span class="p">[</span><span class="n">exposureArray</span> <span class="nv">addObject</span><span class="p">:</span><span class="n">dic01</span><span class="p">];</span>  
+      	<span class="p">});</span>
+    <span class="p">}</span>
+   
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>如果是<code class="highlighter-rouge">UIScrollView</code> 上的元素就很难麻烦了，需要监听滑动事件，每次滑动结束后比较时间和位置，找出需要曝光的数据，费时费力不说，准确度也不高</li>
+</ul>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndScroll</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="p">{</span>
+    <span class="kt">NSTimeInterval</span> <span class="n">endtime</span> <span class="o">=</span> <span class="p">[</span><span class="kt">MSUIUtils</span> <span class="n">getCurrentTimestamp</span><span class="p">];</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">endtime</span> <span class="o">-</span> <span class="n">lastScrollTime</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">lastScrollDistance</span> <span class="o">!=</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">contentOffset</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kt">NSUInteger</span> <span class="n">count</span> <span class="o">=</span> <span class="n">lastScrollDistance</span> <span class="o">/</span> <span class="mi">105</span><span class="p">;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">count</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">&lt;</span> <span class="k">self</span><span class="o">.</span><span class="n">productItems</span><span class="o">.</span><span class="n">count</span><span class="p">)</span> <span class="p">{</span>
+                <span class="p">[</span><span class="k">self</span> <span class="nv">productExposureEvent</span><span class="p">:[</span><span class="k">self</span><span class="o">.</span><span class="n">productItems</span> <span class="nv">objectAtIndex</span><span class="p">:</span><span class="n">count</span><span class="p">]</span> <span class="nv">page</span><span class="p">:</span><span class="n">count</span><span class="p">];</span>
+                <span class="p">[</span><span class="k">self</span> <span class="nv">productExposureEvent</span><span class="p">:[</span><span class="k">self</span><span class="o">.</span><span class="n">productItems</span> <span class="nv">objectAtIndex</span><span class="p">:</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="nv">page</span><span class="p">:</span><span class="n">count</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+                <span class="p">[</span><span class="k">self</span> <span class="nv">productExposureEvent</span><span class="p">:[</span><span class="k">self</span><span class="o">.</span><span class="n">productItems</span> <span class="nv">objectAtIndex</span><span class="p">:</span><span class="n">count</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span> <span class="nv">page</span><span class="p">:</span><span class="n">count</span><span class="o">+</span><span class="mi">2</span><span class="p">];</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">lastScrollTime</span> <span class="o">=</span> <span class="n">endtime</span><span class="p">;</span>
+    <span class="n">lastScrollDistance</span> <span class="o">=</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">contentOffset</span><span class="o">.</span><span class="n">x</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>不能滑动的页面需要在页面离开的时候比较时间和位置，找出需要曝光的数据，比较简单这里就不贴代码了。</li>
+</ul>
+
+<p>以上的代码，每个需要曝光的页面都需要写一遍，耦合在业务代码中，你中有我，我中有你，尤其是第二种代码量巨大，精确度还不高，经常被业务部门吐槽。</p>
+
+<h3 id="改进方案">改进方案</h3>
+
+<p><strong>点击事件</strong> 和 <strong>页面流</strong> 用神策的全埋点就可以采集，现在只是在对应的页面绑定上额外参数，或者到管理后台管理好映射表。</p>
+
+<p>如果对传输的数据量有高的要求，或者对性能有严格要求，更好的方案就是类似美团在 <a href="https://tech.meituan.com/2017/03/02/mt-mobile-analytics-practice.html">美团点评前端无痕埋点实践</a> 中提到的方案 按需自动埋点。</p>
+
+<p>简单来说就是利用swift关联属性和类别的语法特性，无需重写UI控件，实现声明式打点。对于UIControl，在声明埋点时添加新的 action，并在事件发生时自动填写埋点代码</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 代码来自 https://tech.meituan.com/2017/03/02/mt-mobile-analytics-practice.html</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">nvja_setAnalyticsParams</span><span class="p">:(</span><span class="kt">NVJAMGEParameter</span> <span class="o">*</span><span class="p">)</span><span class="n">params</span> <span class="nv">mgeType</span><span class="p">:(</span><span class="kt">SAKStatisticsEventMGEType</span><span class="p">)</span><span class="n">type</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">wmja_clickParams</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span> <span class="n">type</span> <span class="o">==</span> <span class="kt">SAKStatisticsEventClick</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="k">self</span> <span class="nv">addTarget</span><span class="p">:</span><span class="k">self</span> <span class="nv">action</span><span class="p">:</span><span class="kd">@selector(wmja_controlDidTapped:)</span> <span class="nv">forControlEvents</span><span class="p">:</span><span class="kt">UIControlEventTouchUpInside</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="p">[</span><span class="k">super</span> <span class="nv">nvja_setAnalyticsParams</span><span class="p">:</span><span class="n">params</span> <span class="nv">mgeType</span><span class="p">:</span><span class="n">type</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>在此基础上还满足不了的部分和业务强关联，有上下文联系的复杂埋点要适当的向服务端迁移，极少的不适合迁移到服务端的用代码埋点兜底。</p>
+
+<p><strong>曝光埋点</strong> 目前的方式肯定接受不了，实现一个自动化，业务入侵小的方案是我们的当务之急。</p>
+
+<p>对于我司 2s 曝光的需求，可以通过判断 View 的可见性，监听可见性变化来计算是否需要曝光。曝光的数据采取声明式的动态绑定上去，没有就不曝光，减小上报量。</p>
+
+<p>影响 View 可见性的因素大概有以下情况</p>
+
+<ul>
+  <li>
+    <p>应用退到后台，强杀应用 / 应用切到前台</p>
+  </li>
+  <li>
+    <p>页面切换</p>
+  </li>
+  <li>
+    <p>自身位置变化</p>
+  </li>
+  <li>
+    <p>父视图位置变化</p>
+  </li>
+  <li>
+    <p>隐藏属性</p>
+  </li>
+  <li>
+    <p>透明度属性</p>
+  </li>
+  <li>
+    <p><del>同级视图遮挡太过复杂，应当从设计上规避，不考虑</del></p>
+  </li>
+</ul>
+
+<p>强杀，退后台 可以通过监听 <code class="highlighter-rouge">UIApplicationWillResignActiveNotification</code> , 和 <code class="highlighter-rouge">UIApplicationWillEnterForegroundNotification</code> 事件，在回调里获取当前视图的顶部控制器的视图来进行计算。</p>
+
+<p>对于其他情况，参考了 <a href="https://www.infoq.cn/article/yoho-data-collection">有货 iOS 数据非侵入式自动采集探索实践</a> 的方案</p>
+
+<p>为 UIView 添加了以下属性</p>
+
+<ul>
+  <li>
+    <p>viewVisible 可见性</p>
+  </li>
+  <li>
+    <p>visibleTime 变化为可见时间</p>
+  </li>
+  <li>
+    <p>inVisibleTime 变化为不可见时间</p>
+  </li>
+  <li>
+    <p>trackParams 绑定的数据</p>
+  </li>
+</ul>
+
+<p>hook 了 UIView 的以下几个函数</p>
+
+<ul>
+  <li>
+    <p>setFrame</p>
+  </li>
+  <li>
+    <p>setBounds</p>
+  </li>
+  <li>
+    <p>setHidden</p>
+  </li>
+  <li>
+    <p>setAlpha</p>
+  </li>
+  <li>
+    <p>willMoveToWindow:</p>
+  </li>
+  <li>
+    <p>didMoveToWindow</p>
+  </li>
+</ul>
+
+<p>如果当前 View trackParams 不为空，就在这几个函数里去计算当前 View 和 subviews  的可见性，计算流程大致如下</p>
+
+<p><img src="/assets/View.png" alt="View" /></p>
+
+<p>然后在设置可见性的地方 更新变化时间，当由可见变为不可见时若满足条件则记录曝光数据。</p>
+
+<p>按照以上的方案，进行了简单场景的测试，跑起来效果还不错。当我满心欢喜的接入到项目里，用首页开始测试时，效果却不尽如人意。</p>
+
+<p>instruments 中 看到 滑动之后 iPhone 5s 的 CPU峰值直接达到百分之 200，页面已经不能正常滑动。iPhone 8 可以正常滑动但是 CPU 峰值也很高，根本达不到上线要求。</p>
+
+<h3 id="再次优化">再次优化</h3>
+
+<p>分析了一波 Timer Profiler，性能瓶颈主要是因为</p>
+
+<ol>
+  <li>
+    <p><strong>滑动视图滑动会频繁调用 setBounds 方法，setBounds 里又进行了大量视图可见性计算</strong>。</p>
+  </li>
+  <li>
+    <p><strong>复杂页面View 层级过多的子视图遍历，多了太多无效调用，比如视图树的某个分支并没有声明曝光参数，有位置变化还是会进行大量计算十分低效。</strong></p>
+  </li>
+</ol>
+
+<p><strong>优化点一</strong></p>
+
+<p>思考之后，我们认为这两点都存在大量的优化的空间，对于第一种情况，我们将 UIScrollView  和他的子类 UITableView  和  UICollectionView   同一般的 View 区别开来，通过 hook 了 <code class="highlighter-rouge">setDelegate</code> 方法添加一个 Proxy。在 Proxy 中需要实现想 hook 的代理方法，做再下发给真正要设置的 internalDelegate 。</p>
+
+<p>转发相关逻辑如下</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nv">respondsToSelector</span><span class="p">:(</span><span class="kt">SEL</span><span class="p">)</span><span class="n">aSelector</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">([</span><span class="k">super</span> <span class="nv">respondsToSelector</span><span class="p">:</span><span class="n">aSelector</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">([</span><span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span> <span class="nv">respondsToSelector</span><span class="p">:</span><span class="n">aSelector</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="kt">BOOL</span><span class="p">)</span><span class="nv">isKindOfClass</span><span class="p">:(</span><span class="kt">Class</span><span class="p">)</span><span class="n">aClass</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[</span><span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span> <span class="nv">isKindOfClass</span><span class="p">:</span><span class="n">aClass</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="kt">NSMethodSignature</span> <span class="o">*</span><span class="p">)</span><span class="nv">methodSignatureForSelector</span><span class="p">:(</span><span class="kt">SEL</span><span class="p">)</span><span class="n">aSelector</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">[[</span><span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span> <span class="kd">class</span><span class="p">]</span> <span class="nv">instanceMethodSignatureForSelector</span><span class="p">:</span><span class="n">aSelector</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">forwardInvocation</span><span class="p">:(</span><span class="kt">NSInvocation</span> <span class="o">*</span><span class="p">)</span><span class="n">anInvocation</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span> <span class="nv">respondsToSelector</span><span class="p">:</span><span class="n">anInvocation</span><span class="o">.</span><span class="n">selector</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="p">[</span><span class="n">anInvocation</span> <span class="nv">invokeWithTarget</span><span class="p">:</span><span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span><span class="p">];</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="kt">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">description</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span><span class="o">.</span><span class="n">description</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>这里 Proxy 使用了类簇的概念，对 UIScrollView 和子类的 Proxy 行为进行了区分，因为他们需要处理的回调事件不同</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">instancetype</span><span class="p">)</span><span class="nv">initWithInternalDelegate</span><span class="p">:(</span><span class="n">id</span><span class="o">&lt;</span><span class="kt">UIScrollViewDelegate</span><span class="o">&gt;</span><span class="p">)</span><span class="n">internalDelegate</span> <span class="kt">ScrollView</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="p">{</span>
+
+    <span class="k">if</span> <span class="p">([</span><span class="n">scrollView</span> <span class="nv">isKindOfClass</span><span class="p">:[</span><span class="kt">UITableView</span> <span class="kd">class</span><span class="p">]])</span> <span class="p">{</span>
+        <span class="n">id</span> <span class="o">&lt;</span><span class="kt">UITableViewDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span> <span class="o">=</span> <span class="p">(</span><span class="n">id</span> <span class="o">&lt;</span><span class="kt">UITableViewDelegate</span><span class="o">&gt;</span> <span class="p">)</span><span class="n">internalDelegate</span><span class="p">;</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="kt">MallTableViewProxy</span> <span class="n">alloc</span><span class="p">]</span><span class="nv">initWithInternalDelegate</span><span class="p">:</span><span class="n">delegate</span><span class="p">];</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">([</span><span class="n">scrollView</span> <span class="nv">isKindOfClass</span><span class="p">:[</span><span class="kt">UICollectionView</span> <span class="kd">class</span><span class="p">]])</span> <span class="p">{</span>
+        <span class="n">id</span> <span class="o">&lt;</span><span class="kt">UICollectionViewDelegate</span><span class="o">&gt;</span> <span class="n">delegate</span> <span class="o">=</span> <span class="p">(</span><span class="n">id</span> <span class="o">&lt;</span><span class="kt">UICollectionViewDelegate</span><span class="o">&gt;</span> <span class="p">)</span><span class="n">internalDelegate</span><span class="p">;</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="kt">MallCollectionViewProxy</span> <span class="n">alloc</span><span class="p">]</span><span class="nv">initWithInternalDelegate</span><span class="p">:</span><span class="n">delegate</span><span class="p">];</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="p">[[</span><span class="kt">MallScrollViewProxy</span> <span class="n">alloc</span><span class="p">]</span><span class="nv">initWithInternalDelegate</span><span class="p">:</span><span class="n">internalDelegate</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="n">instancetype</span><span class="p">)</span><span class="nv">initWithInternalDelegate</span><span class="p">:</span> <span class="p">(</span><span class="n">id</span><span class="o">&lt;</span><span class="kt">UIScrollViewDelegate</span><span class="o">&gt;</span><span class="p">)</span><span class="n">internalDelegate</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">self</span> <span class="o">=</span> <span class="p">[</span><span class="k">super</span> <span class="kd">init</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">self</span><span class="o">.</span><span class="n">internalDelegate</span> <span class="o">=</span> <span class="n">internalDelegate</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="k">self</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>对于 UIScrollView 的处理</strong></p>
+
+<p>UIScrollView 滑动的回调事件 <code class="highlighter-rouge">scrollViewDidScroll</code>  调用频繁，在这里计算可见性显然不是很好的选择，我们只需要在用户停止滚动的时候去比较就可以满足需求了。</p>
+
+<p>UIScroll 停止滚动的类型分为三种：</p>
+
+<ol>
+  <li>
+    <p>快速滚动，自然停止</p>
+  </li>
+  <li>
+    <p>快速滚动，手势介入停止</p>
+  </li>
+  <li>
+    <p>慢速上下滚动停止</p>
+  </li>
+</ol>
+
+<p>第一种 可以通过 <code class="highlighter-rouge">- (void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView</code> 来监听</p>
+
+<p>第二种 和 第三种 没有直接的回调事件可以获取，但是就只要滑动会触发以下的方法</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDecelerating</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span><span class="p">;</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDragging</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="nv">willDecelerate</span><span class="p">:(</span><span class="kt">BOOL</span><span class="p">)</span><span class="n">decelerate</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>通过调查我们发现，通过 UIScrollView 的 tracking， dragging， decelerating 的属性的组合可以在回调事件中监听到滚动已经停止的事件</p>
+
+<p>第一种</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDecelerating</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span><span class="p">;</span>
+<span class="nv">tracking</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">dragging</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">decelerating</span><span class="p">:</span><span class="mi">0</span>
+</code></pre></div></div>
+
+<p>第二种</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDragging</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="nv">willDecelerate</span><span class="p">:(</span><span class="kt">BOOL</span><span class="p">)</span><span class="n">decelerate</span><span class="p">;</span>
+<span class="nv">tracking</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nv">dragging</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">decelerating</span><span class="p">:</span><span class="mi">1</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDecelerating</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span><span class="p">;</span>
+<span class="nv">tracking</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">dragging</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">decelerating</span><span class="p">:</span><span class="mi">0</span>
+</code></pre></div></div>
+
+<p>第三种</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDragging</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="nv">willDecelerate</span><span class="p">:(</span><span class="kt">BOOL</span><span class="p">)</span><span class="n">decelerate</span><span class="p">;</span>
+<span class="nv">tracking</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span><span class="nv">dragging</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span><span class="nv">decelerating</span><span class="p">:</span><span class="mi">0</span>
+</code></pre></div></div>
+
+<p>完整代码</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDecelerating</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="p">{</span>
+    <span class="c1">// 停止类型1、停止类型2</span>
+    <span class="kt">BOOL</span> <span class="n">scrollToScrollStop</span> <span class="o">=</span> <span class="o">!</span><span class="n">scrollView</span><span class="o">.</span><span class="n">tracking</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">scrollView</span><span class="o">.</span><span class="n">dragging</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">scrollView</span><span class="o">.</span><span class="n">decelerating</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">scrollToScrollStop</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="k">self</span> <span class="n">scrollViewDidEndScroll</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">scrollViewDidEndDragging</span><span class="p">:(</span><span class="kt">UIScrollView</span> <span class="o">*</span><span class="p">)</span><span class="n">scrollView</span> <span class="nv">willDecelerate</span><span class="p">:(</span><span class="kt">BOOL</span><span class="p">)</span><span class="n">decelerate</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">decelerate</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// 停止类型3</span>
+        <span class="kt">BOOL</span> <span class="n">dragToDragStop</span> <span class="o">=</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">tracking</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">scrollView</span><span class="o">.</span><span class="n">dragging</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">scrollView</span><span class="o">.</span><span class="n">decelerating</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">dragToDragStop</span><span class="p">)</span> <span class="p">{</span>
+            <span class="p">[</span><span class="k">self</span> <span class="n">scrollViewDidEndScroll</span><span class="p">];</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// 滚动停止事件</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="n">scrollViewDidEndScroll</span> <span class="p">{</span>
+    <span class="kt">NSLog</span><span class="p">(</span><span class="s">@"监测到滚动停止了"</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>到这里，我们解决了停止滚动结束事件的监听，要做的就是在滚动结束计算 ScrollView 和 其子类的的可见性</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="n">scrollViewDidEndScroll</span> <span class="p">{</span>
+	    <span class="k">if</span> <span class="p">(</span><span class="n">scrollView</span><span class="o">.</span><span class="n">mallExposureData</span><span class="o">.</span><span class="n">nodeType</span> <span class="o">==</span> <span class="kt">MallExposureContainerNode</span> <span class="o">||</span> <span class="n">scrollView</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">scrollView</span> <span class="n">mallUpdateViewVisible</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>对于 UITableView 和 UICollectionView 的处理</strong></p>
+
+<p>这里的处理比较简单，和以前的做法一样，只需要在 <code class="highlighter-rouge">willDisplayCell</code>  和 <code class="highlighter-rouge">didEndDisplayingCell</code>  中比较时间戳，来决定是否需要上报。</p>
+
+<p>至此，我们针对上面的问题点一进行了优化，其实这样已经能满足大部分场景的需求。也看到也有别人分享的方案也大致如此，但我们没有止步于此。</p>
+
+<p><strong>优化点二</strong></p>
+
+<p>对于问题点二，想象一下一棵视图树，如果你的一个页面上的一个控件绑定了曝光事件，那当前 window 的所有视图都需要参与可见性计算，因为可见性判断是要根据父节点的可见性来判断，而父视图又要遍历它所有的子树。</p>
+
+<p>这不是我想要的，能不能再有需要曝光的节点才去计算可见性呢？</p>
+
+<p>为了实现这个想法，我为 UIView 添加了 2 个属性。</p>
+
+<ul>
+  <li>
+    <p>nodeType 用来标记视图的节点类型</p>
+
+    <ul>
+      <li>
+        <p>普通节点 - 无需参与计算。</p>
+      </li>
+      <li>
+        <p>叶子节点 - 需要参与计算。</p>
+      </li>
+      <li>
+        <p>容器节点 - 用来标记 TableView 和 CollectionView</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>leafCount 用来标记子视图中需要参与计算的个数</p>
+  </li>
+</ul>
+
+<p>如下图所示，是一棵普通节点组成的视图树，0 代表 leafCount，那么这棵树在计算可见性时就直接被忽略了</p>
+
+<p><img src="/assets/huffman树.png" alt="huffman树" /></p>
+
+<p>当有一个叶子节点添加上来时，会依次向上给自己的 superView 的 leafCount 加 1，如下图，添加后只有染红的节点需要参与可见性计算。</p>
+
+<p><img src="/assets/huffman树 (2).png" alt="huffman树 (1)" /></p>
+
+<p>容器节点比较特殊，因为 UITableView 和 UICollectionView 的 cell 曝光已经在上面被单独处理掉了。</p>
+
+<p>所以，最小单位为 cell 的节点，leafCount 只需要 +1，标记起来在不滑动直接退出，或者页面切换时 参与计算。</p>
+
+<p><img src="/assets/huffman树 (1).png" alt="huffman树 (1)" /></p>
+
+<p>cell 中嵌套 自定义的叶子节点，和叶子节点一样，有几个加几个。</p>
+
+<p><img src="/assets/huffman树 (3).png" alt="huffman树 (3)" /></p>
+
+<p>节点移除的时候同理。添加和删除的逻辑代码如下</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 添加</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="n">mallPaintParentTree</span> <span class="p">{</span>
+    <span class="kt">UIView</span> <span class="o">*</span> <span class="n">view</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">superview</span><span class="p">;</span>
+    <span class="kt">UIView</span> <span class="o">*</span> <span class="n">tempView</span> <span class="o">=</span> <span class="k">self</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">view</span> <span class="nv">isKindOfClass</span><span class="p">:</span> <span class="p">[</span><span class="kt">UIWindow</span> <span class="kd">class</span><span class="p">]]</span> <span class="o">&amp;&amp;</span> <span class="n">view</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="p">[</span><span class="n">view</span><span class="o">.</span><span class="n">nextResponder</span> <span class="nv">isKindOfClass</span><span class="p">:[</span><span class="kt">UIViewController</span> <span class="kd">class</span><span class="p">]])</span> <span class="p">{</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="n">tempView</span> <span class="o">=</span> <span class="n">view</span><span class="p">;</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">superview</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">tempView</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">[</span><span class="n">tempView</span> <span class="n">mallUpdateViewVisible</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// 删除</span>
+<span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="n">mallClearParentTree</span> <span class="p">{</span>
+    <span class="kt">UIView</span> <span class="o">*</span> <span class="n">view</span> <span class="o">=</span> <span class="k">self</span><span class="o">.</span><span class="n">superview</span><span class="p">;</span>
+    <span class="kt">UIView</span> <span class="o">*</span> <span class="n">tempView</span> <span class="o">=</span> <span class="k">self</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="p">[</span><span class="n">view</span> <span class="nv">isKindOfClass</span><span class="p">:</span> <span class="p">[</span><span class="kt">UIWindow</span> <span class="kd">class</span><span class="p">]]</span> <span class="o">&amp;&amp;</span> <span class="n">view</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="p">[</span><span class="n">view</span><span class="o">.</span><span class="n">nextResponder</span> <span class="nv">isKindOfClass</span><span class="p">:[</span><span class="kt">UIViewController</span> <span class="kd">class</span><span class="p">]])</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">){</span>
+            <span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="n">tempView</span> <span class="o">=</span> <span class="n">view</span><span class="p">;</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="n">superview</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">){</span>
+        <span class="n">view</span><span class="o">.</span><span class="n">mallLeafCount</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="p">[</span><span class="k">self</span> <span class="n">mallUpdateViewVisible</span><span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>优化后的代码经过测试，在 5s 上 CPU的峰值有少许上升，但不是很明显，在接受范围内。</p>
+
+<h3 id="落地实践">落地实践</h3>
+
+<p>因为是 hook 方案，全局影响比较大，在第一版我们加了开关在首页 和 搜索的推荐商品列表进行了试点，效果还不错，埋点代码得到了简化，准确率也提升了。</p>
+
+<p>上线后和安卓的人均次数横向对比如下 （安卓视图的可见性有系统级的回调，所以数据是相对准确的）</p>
+
+<p><strong>采用老方案的模块</strong></p>
+
+<p><img src="/assets/FireShot Capture 003 - 事件分析-神策分析 - sensorsadmin.34580.cn.png" alt="FireShot Capture 003 - 事件分析-神策分析 - sensorsadmin.34580.cn" /></p>
+
+<p><strong>采用改进后方案的模块</strong></p>
+
+<p><img src="/assets/FireShot Capture 002 - 事件分析-神策分析 - sensorsadmin.34580.cn.png" alt="FireShot Capture 002 - 事件分析-神策分析 - sensorsadmin.34580.cn" /></p>
+
+<p>实践过程中还遇到了许多细节上的问题，这里就不详细说了。</p>
+
+<h3 id="未来计划">未来计划</h3>
+
+<ul>
+  <li>
+    <p>目前可见性的计算和设置因为和 View相关， 是在主线程进行的。未来打算构造一个虚拟视图树，这样就可以在子线程计算。</p>
+  </li>
+  <li>
+    <p>ScrollView 的方法转发有很多不确定性，之前是黑名单模式，不 hook 列表里的子类，遇到了很多问题。改为白名单之后解决了问题，这一块目前还在考虑如何优化。</p>
+  </li>
+</ul>
+
+<p><strong>参考文章</strong></p>
+
+<p><a href="https://tech.meituan.com/2017/03/02/mt-mobile-analytics-practice.html">美团点评前端无痕埋点实践</a></p>
+
+<p><a href="http://www.cocoachina.com/articles/21659">有货 iOS 数据非侵入式自动采集探索实践</a></p>
+
+
+
+</div>
+
+<div class="pagination">
+  
+  
+    <a href="/2019-07-06/%E8%AE%B0%E4%B8%80%E4%B8%AA-HTTP-%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2020-01-17 17:31:39 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>
