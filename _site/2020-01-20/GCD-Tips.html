@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      GCD Tips &middot; Gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        Gerald
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2020-01-20 00:00:00 +0800">January 20, 2020</time>
+    
+  </div>
+
+  <h1 class="post-title">GCD Tips</h1>
+  <div class="post-line"></div>
+
+  <ul>
+  <li>
+    <p>不要使用太多的基于 global 的队列。过多的 queues 同时处于 active 状态容易导致线程爆炸。队列应该按具体的任务类型分类（gui，存储，后台任务）等。</p>
+  </li>
+  <li>
+    <p>优先串行，然后找到性能瓶颈（如果存在）-&gt; 找到原因 -&gt; 如果并发可以解决，使用并发。尽量重用队列，大多数应用不应该存在大于 3 或 4 个队列。</p>
+  </li>
+</ul>
+
+<!--more-->
+<ul>
+  <li>
+    <p>队列可以依附其他队列，这些是可扩展的队列。</p>
+  </li>
+  <li>
+    <p>不要使用 dispatch_get_global_queue()， 同第一条。</p>
+  </li>
+  <li>
+    <p>dispatch_async() 大概率会新建线程，耗时较小的任务不要使用，以造成额外的上下文切换的开销。</p>
+  </li>
+  <li>
+    <p>并发运行时，各个 work item 如果有资源竞争，性能会急剧下降。（比如 锁， 共享内存，io，malloc 等）</p>
+  </li>
+  <li>
+    <p>使用一些设计的更好的锁，比如 os_unnfair_lock （不存在优先级反转的自旋锁）。更好的优先级，更少的上下文切换成本。</p>
+  </li>
+  <li>
+    <p>异步嵌套引入的代码复杂度需要考虑，同步代码更为清晰。</p>
+  </li>
+  <li>
+    <p>异步队列不像同步队列有经过优化，所以不是必要不要过度优化。</p>
+  </li>
+</ul>
+
+
+
+</div>
+
+<div class="pagination">
+  
+  
+    <a href="/2020-01-16/iOS-%E9%9D%9E%E4%BE%B5%E5%85%A5%E5%BC%8F%E5%9F%8B%E7%82%B9%E6%96%B9%E6%A1%88" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2020-01-22 10:53:55 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>
