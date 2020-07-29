@@ -63,8 +63,8 @@
 
 <p>想起来 <code class="highlighter-rouge">NSURLSession</code> 有个默认的单个<code class="highlighter-rouge">Host</code>最大连接数，超过之后会进入排队，可能导致后续服务超时。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/* The maximum number of simultanous persistent connections per host */</span>
-<span class="k">@property</span> <span class="n">NSInteger</span> <span class="n">HTTPMaximumConnectionsPerHost</span><span class="p">;</span>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* The maximum number of simultanous persistent connections per host */
+@property NSInteger HTTPMaximumConnectionsPerHost;
 </code></pre></div></div>
 
 <p>利用 Xcode 的调试模式来看一下，结果惊掉下巴，随便点了几下就建立了这么多连接</p>
@@ -154,7 +154,7 @@
 
     <footer>
       <span>
-        &copy; <time datetime="2020-01-22 10:53:55 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2020-07-30 00:36:38 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>

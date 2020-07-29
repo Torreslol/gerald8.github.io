@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      复杂列表滑动优化(一) &middot; Gerald
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+</head>
+
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+        <a href="/">
+          <h2 class="nav-title">Gerald</h2>
+        </a>
+        <ul>
+          <li><a href="/about">About</a></li>
+          <li><a href="/">Posts</a></li>
+        </ul>
+    </div>
+  </nav>
+
+    <main>
+      <link rel="stylesheet" href="/assets/css/syntax.css">
+<div class="post">
+  <div class="post-info">
+    <span>Written by</span>
+    
+        Gerald
+    
+
+    
+      <br>
+      <span>on&nbsp;</span><time datetime="2020-07-30 00:00:00 +0800">July 30, 2020</time>
+    
+  </div>
+
+  <h1 class="post-title">复杂列表滑动优化(一)</h1>
+  <div class="post-line"></div>
+
+  <p>最近完成了应用首页的重构，在这里总结一些心得，没有长篇大论，只讲关键点</p>
+
+<h2 id="何时做优化">何时做优化</h2>
+
+<p>不提倡过渡、提前优化，在技术选型，框架做好之后先做设计还原，之后再看性能瓶颈，多看 Instruments，少猜测，如很多教程所言Instruments 可以看到卡顿时 GPU 和 CPU 的负载，现在还多了 Display 工具。可以看到每次垂直同步期间内的详细绘制情况。如下图</p>
+
+<!--more-->
+
+<p><img src="/assets/image-20200330182115181.png" alt="image-20200330182115181" /></p>
+
+<h2 id="如何做优化">如何做优化</h2>
+
+<p>在 16.67ms (理论时间，其实更短) 内如果 CPU 或 GPU 没有完成内容提交，都会造成卡顿。现在的设备芯片性能越来越好，目前主要瓶颈都在 CPU，这里我们来讲一下目前针对 CPU 性能瓶颈做了哪些优化</p>
+
+<h3 id="初级">初级</h3>
+
+<ul>
+  <li>
+    <p><strong>数据预处理，预加载</strong></p>
+
+    <p>比如首页长列表上面是滚动楼层，下面是推荐楼层，一般是 2 个 api，可以让服务层或者移动网关进行 api 合并，统一返回（盒马生鲜），或者自己选择合适的时机提前去加载，避免滑到推荐楼层再去加载数据。</p>
+
+    <p>预加载是对于无限瀑布流情况下 滑动到 5 的时候去加载下一页 10-20 的数据。</p>
+  </li>
+  <li>
+    <p><strong>耗时操作丢到子线程</strong></p>
+
+    <p>没什么好讲的，避免读写，计算</p>
+  </li>
+  <li>
+    <p><strong>图片异步解码</strong></p>
+
+    <p>说初级是因为现在大部分框架都帮我们做掉了</p>
+  </li>
+</ul>
+
+<h3 id="中级">中级</h3>
+
+<ul>
+  <li>
+    <p><strong>图片格式优化</strong></p>
+
+    <ul>
+      <li>
+        <p><strong>静态图</strong></p>
+
+        <p>jpg 体积小，可以节省流量提升显示速度，加载可选渐进显示。png 体积较大，但是它带 alpha 通道，iOS系统针对解码有优化。</p>
+
+        <p>看上去很简单，网络图片用 jpg，本地放的 png（在线压缩一下）。</p>
+
+        <p>为什么说是中级呢，这里有个场景就是首页有大量图片广告都是带圆角的，jpg 切圆会有白底，用 png 尺寸太大了，你懂的，电商首页除了图就是图。怎么解决，后来参考了下每日优鲜，商品卡片白色底而且四周有 padding，有白边，看不到就行了。</p>
+      </li>
+      <li>
+        <p><strong>动态图</strong></p>
+
+        <p>电商首页除了图还有别的，就是会动的图。都说 webP 比 gif 好太多了，Benchmark 我就不发了，随便一搜很多。阿里云在线示例也提供了对比。</p>
+
+        <p>问题是 webP 虽好，你去找设计要，设计会告诉你做不了，导不了这个格式。要用 AI 装插件，导出 Apng 再用 Google 爸爸的工具转。和设计折腾了半天，转出来是转出来了，效果和成本都不尽如人意。</p>
+
+        <p>还有一条路，就是用阿里云的在线格式转换，马上跑去试了一下耗时感人。</p>
+
+        <p>我想我知道都 2020 年了，大家还没用上 webP 的原因了。</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p><strong>系统 API 优化</strong></p>
+
+    <p>真做过优化的肯定都知道，系统有几个 API 是挺好使也耗时的，为什么说好使，因为打错了不想删。</p>
+
+    <ul>
+      <li>
+        <p><strong>boundingRect 文本算高</strong></p>
+
+        <p>解决办法 - 主要是针对同字体字号的计算出的结果缓存，我们用的下面的方案。</p>
+
+        <p><a href="https://github.com/NotFound9/StringCalculate">https://github.com/NotFound9/StringCalculate</a></p>
+      </li>
+      <li>
+        <p><strong>NSDateFormatter 时间格式化</strong></p>
+
+        <p>解决办法 - 有很多有缓存的，有用 c 级别的 API 替代的。我们用的后种。</p>
+
+        <p>参考 <a href="https://juejin.im/post/5c90565e6fb9a071090d5a47">https://juejin.im/post/5c90565e6fb9a071090d5a47</a></p>
+      </li>
+    </ul>
+
+    <p>还有就是 swift 的高阶函数，编译器有优化，我们数据处理用了很多 map，参考 <a href="https://www.skoumal.com/en/performance-of-built-in-higher-order-functions-map-filter-reduce-and-flatmap-vs-for-in-loop-in-swift/">https://www.skoumal.com/en/performance-of-built-in-higher-order-functions-map-filter-reduce-and-flatmap-vs-for-in-loop-in-swift/</a></p>
+  </li>
+  <li>
+    <p><strong>布局优化</strong></p>
+
+    <p>说的就是 <a href="https://juejin.im/post/5bd5a546f265da0af033cee6">AutoLayout 的性能问题</a>，虽然号称 iOS 12得到了优化，但是在瀑布流商品快速滑动测试中表现的还是不尽如人意。</p>
+
+    <p><img src="/assets/autolayout.png" alt="autolayout" /></p>
+
+    <p>我们也不可能用回 frame 布局，太恶心。</p>
+
+    <p>解决方法 <a href="https://github.com/layoutBox/FlexLayout">https://github.com/layoutBox/FlexLayout</a> ,就是 Facebook 的 Yoga 套了个盒子布局的 api。
+具体的性能对比这里有 <a href="https://github.com/layoutBox/LayoutFrameworkBenchmark">https://github.com/layoutBox/LayoutFrameworkBenchmark</a> 。目前性能要求高的页面已经全部在切过去了。</p>
+  </li>
+  <li>
+    <p><strong>Cell 高度缓存，瀑布流商品卡片高度缓存</strong></p>
+
+    <p>没什么好说的，能计算一次就只计算一次，API 拿到 business model 转换成 view model 的时候就做好了丢到视图，数据驱动，数据不变高度不变。</p>
+  </li>
+  <li>
+    <p><strong>复用策略</strong></p>
+
+    <p>这里其实比较重要的，因为有的复杂一点的楼层在 bind model 的时候才知道内部层级和布局，所以每次都要重绘，严重影响性能。其实一个 cell 复用的情况无非就是这几种</p>
+
+    <ol>
+      <li>重新创建</li>
+      <li>有实例，需要绑数据</li>
+      <li>数据相同，直接用</li>
+    </ol>
+
+    <p> </p>
+
+    <p>安卓的 Recyclerview 有四级缓存，比较友好，你只要实现 onCreateViewHolder 和onBindViewHolder 就行。他自己有个类似数据的 diff 会判断复用的 视图需不需要重新绑定。</p>
+
+    <p>iOS 没有，怎么办呢，数据驱动</p>
+
+    <ol>
+      <li>数据源里楼层类型唯一，标记为不复用，dequeueReusableCell 拿到的 cell 只要判断绑定的model 是不是 nil，nil 的话就是复用池满了被销毁了重新创建的，那需要重新绑数据。否则就直接用。</li>
+      <li>数据源里不唯一，但是绑定开销又特别大的 identifier 定制一下，数据类型加时间戳之类的唯一标识符，尽量让他不复用。</li>
+    </ol>
+  </li>
+</ul>
+
+<p> </p>
+
+<ul>
+  <li>
+    <p><strong>局部刷新</strong></p>
+
+    <p>IGListKit 的强奸包，其实电商首页很少有局部刷新的场景，用起来也不像它的 Demo 那样简单，真要用好还是要仔细看看它的 diff 算法。</p>
+  </li>
+</ul>
+
+<h3 id="高级">高级</h3>
+
+<p>说高级是因为我们没有做，为什么没有做，因为经过上面一些操作，在测试机 se 上能稳定在 55 帧以上了。</p>
+
+<ul>
+  <li>
+    <p><strong>按需加载图片</strong></p>
+
+    <p>就是滑动停止的时候加载可见区域的网络图片，这个不难，只不过我们的 placeholder 太丑了，没有做骨架屏，就没有做。</p>
+  </li>
+  <li>
+    <p><strong>Texture 、AsyncDisplayKit</strong></p>
+
+    <p>去年做过 Texture + IGlistkit 框架的页面，上手成本比较高，Texture 有各种闪烁问题。最关键的是全埋点抓不到，所以基本不再考虑了。</p>
+  </li>
+</ul>
+
+
+
+</div>
+
+<div class="pagination">
+  
+  
+    <a href="/2020-01-20/GCD-Tips" class="right arrow">&#8594;</a>
+  
+
+  <a href="#" class="top">Top</a>
+</div>
+
+    </main>
+
+    <footer>
+      <span>
+        &copy; <time datetime="2020-07-30 00:36:38 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+      </span>
+    </footer>
+  </body>
+</html>

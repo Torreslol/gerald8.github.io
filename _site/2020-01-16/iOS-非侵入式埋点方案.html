@@ -148,7 +148,7 @@
         <span class="c1">//        dispatch_once(&amp;onceToken, ^{</span>
         <span class="k">if</span> <span class="p">(</span><span class="nf">class_addMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kt">NSSelectorFromString</span><span class="p">(</span><span class="s">@"sa_tableViewDidSelectRowAtIndexPath"</span><span class="p">),</span> <span class="p">(</span><span class="kt">IMP</span><span class="p">)</span><span class="n">sa_tableViewDidSelectRowAtIndexPath</span><span class="p">,</span> <span class="s">"v@:@@"</span><span class="p">))</span> <span class="p">{</span>
             <span class="kt">Method</span> <span class="n">dis_originMethod</span> <span class="o">=</span> <span class="nf">class_getInstanceMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kt">NSSelectorFromString</span><span class="p">(</span><span class="s">@"sa_tableViewDidSelectRowAtIndexPath"</span><span class="p">));</span>
-            <span class="kt">Method</span> <span class="n">dis_swizzledMethod</span> <span class="o">=</span> <span class="nf">class_getInstanceMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kd">@selector(tableView:didSelectRowAtIndexPath:)</span><span class="p">);</span>
+            <span class="kt">Method</span> <span class="n">dis_swizzledMethod</span> <span class="o">=</span> <span class="nf">class_getInstanceMethod</span><span class="p">(</span><span class="kd">class</span><span class="p">,</span> <span class="kd">@selector</span><span class="p">(</span><span class="nv">tableView</span><span class="p">:</span><span class="nv">didSelectRowAtIndexPath</span><span class="p">:));</span>
             <span class="nf">method_exchangeImplementations</span><span class="p">(</span><span class="n">dis_originMethod</span><span class="p">,</span> <span class="n">dis_swizzledMethod</span><span class="p">);</span>
         <span class="p">}</span>
         <span class="c1">//        });</span>
@@ -242,13 +242,13 @@
 
 <p>如果对传输的数据量有高的要求，或者对性能有严格要求，更好的方案就是类似美团在 <a href="https://tech.meituan.com/2017/03/02/mt-mobile-analytics-practice.html">美团点评前端无痕埋点实践</a> 中提到的方案 按需自动埋点。</p>
 
-<p>简单来说就是利用swift关联属性和类别的语法特性，无需重写UI控件，实现声明式打点。对于UIControl，在声明埋点时添加新的 action，并在事件发生时自动填写埋点代码</p>
+<p>简单来说就是利用 OC 关联属性和类别的语法特性，无需重写UI控件，实现声明式打点。 对于UIControl，在声明埋点时添加新的 action，并在事件发生时自动填写埋点代码</p>
 
 <div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 代码来自 https://tech.meituan.com/2017/03/02/mt-mobile-analytics-practice.html</span>
 <span class="o">-</span> <span class="p">(</span><span class="n">void</span><span class="p">)</span><span class="nv">nvja_setAnalyticsParams</span><span class="p">:(</span><span class="kt">NVJAMGEParameter</span> <span class="o">*</span><span class="p">)</span><span class="n">params</span> <span class="nv">mgeType</span><span class="p">:(</span><span class="kt">SAKStatisticsEventMGEType</span><span class="p">)</span><span class="n">type</span>
 <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="n">wmja_clickParams</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span> <span class="n">type</span> <span class="o">==</span> <span class="kt">SAKStatisticsEventClick</span><span class="p">)</span> <span class="p">{</span>
-        <span class="p">[</span><span class="k">self</span> <span class="nv">addTarget</span><span class="p">:</span><span class="k">self</span> <span class="nv">action</span><span class="p">:</span><span class="kd">@selector(wmja_controlDidTapped:)</span> <span class="nv">forControlEvents</span><span class="p">:</span><span class="kt">UIControlEventTouchUpInside</span><span class="p">];</span>
+        <span class="p">[</span><span class="k">self</span> <span class="nv">addTarget</span><span class="p">:</span><span class="k">self</span> <span class="nv">action</span><span class="p">:</span><span class="kd">@selector</span><span class="p">(</span><span class="nv">wmja_controlDidTapped</span><span class="p">:)</span> <span class="nv">forControlEvents</span><span class="p">:</span><span class="kt">UIControlEventTouchUpInside</span><span class="p">];</span>
     <span class="p">}</span>
     <span class="p">[</span><span class="k">super</span> <span class="nv">nvja_setAnalyticsParams</span><span class="p">:</span><span class="n">params</span> <span class="nv">mgeType</span><span class="p">:</span><span class="n">type</span><span class="p">];</span>
 <span class="p">}</span>
@@ -639,7 +639,7 @@
 
     <footer>
       <span>
-        &copy; <time datetime="2020-01-22 10:53:55 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
+        &copy; <time datetime="2020-07-30 00:36:38 +0800">2020</time> Gerald. Made with Jekyll using the <a href="https://github.com/chesterhow/tale/">Tale</a> theme.
       </span>
     </footer>
   </body>
